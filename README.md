@@ -398,8 +398,8 @@ This project is licensed under the MIT License.
 
 We express our gratitude to:
 
-- **Mr. Sohail Inamdar** — Project guide, Sunbeam Institute, Hinjewadi
-- **Mr. Devendra Dhande** — Course Coordinator, PG-DESD, C-DAC Sunbeam Pune
+- **Mrs. Utkarsha Nikam** — Project guide, Sunbeam Institute, Hinjewadi
+- **Mr. Yogesh Kolhe** — Course Coordinator, PG-DESD, C-DAC Sunbeam Pune
 - **C-DAC ACTS, Pune** — For hardware resources and lab access
 
 ### Useful Resources
