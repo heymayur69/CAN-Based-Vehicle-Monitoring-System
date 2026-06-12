@@ -1,4 +1,4 @@
-# Driver Alert System using CAN Protocol
+# CAN BASED VEHICAL MONITORING SYSTEM
 
 <div align="center">
   <img src="https://img.shields.io/badge/STM32F407-Embedded-blue?style=for-the-badge" alt="STM32F407" />
@@ -11,11 +11,29 @@
   <p>
     A real-time automotive driver alert system using CAN protocol for inter-node communication between sensing and actuation nodes built on STM32F407 microcontrollers.
   </p>
-
   <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="license" />
 </div>
 
 <br />
+
+## 📸 Project Images
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center">
+        <img src="images/Project.jpg" width="400" /><br />
+        <b>Project Setup</b>
+      </td>
+      <td align="center">
+        <img src="images/CAN.jpeg" width="400" /><br />
+        <b>CAN Network</b>
+      </td>
+    </tr>
+  </table>
+</div>
+
+---
 
 ## 📋 Table of Contents
 
@@ -29,6 +47,7 @@
   - [Circuit Setup](#circuit-setup)
 - [System Design](#system-design)
   - [Block Diagram](#block-diagram)
+  - [Flowcharts](#flowcharts)
   - [Data Flow](#data-flow)
   - [State Machine](#state-machine)
 - [Source Code Overview](#source-code-overview)
@@ -150,7 +169,7 @@ Both nodes share a common CAN bus via **CAN High** and **CAN Low** differential 
 **Sensing Node — STM32F407 (Transmitter):**
 ```
 LM35 Temperature Sensor:   OUT → PA0 (ADC1_IN0), VCC → 3.3V, GND → GND
-HC-SR04 Ultrasonic:        Trig → PD11 (GPIO Output), Echo → PA0/TIM4_CH (Input Capture)
+HC-SR04 Ultrasonic:        Trig → PD11 (GPIO Output), Echo → TIM4_CH (Input Capture)
 MCP2551 CAN Transceiver:   TXD ← PB9 (CAN1_TX), RXD → PB8 (CAN1_RX)
 CAN Bus Lines:             CANH, CANL (with 120Ω termination at each end)
 ```
@@ -169,27 +188,32 @@ UART Debug:                TX → PA2 (USART2_TX)
 
 ### Block Diagram
 
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│                                                                      │
-│  ┌────────┐          ┌────────────┐     ┌────────────┐   ┌───────┐  │
-│  │  LM35  │────────► │            │     │            │──►│  LCD  │  │
-│  └────────┘          │ STM32F407  │     │ STM32F407  │   └───────┘  │
-│                      │  (Sensing) │     │ (Actuation)│              │
-│  ┌─────────┐         │            │     │            │──►┌────────┐ │
-│  │ HC-SR04 │────────►│            │     │            │   │ Buzzer │ │
-│  └─────────┘         └─────┬──────┘     └──────┬─────┘   └────────┘ │
-│                            │                   │                     │
-│                      ┌─────▼──────┐     ┌──────▼─────┐              │
-│                      │  MCP2551   │     │  MCP2551   │              │
-│                      └─────┬──────┘     └──────┬─────┘              │
-│                            │                   │                     │
-│            Sensing Node    │                   │  Actuation Node    │
-└────────────────────────────┼───────────────────┼────────────────────┘
-                             │                   │
-                   CAN High ─┴───────────────────┘
-                   CAN Low  ─┴───────────────────┘
-```
+<div align="center">
+  <img src="block-diagrams/block digram.jpeg" width="600" />
+  <br />
+  <b>System Block Diagram</b>
+</div>
+
+---
+
+### Flowcharts
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center">
+        <img src="block-diagrams/Flowchart.jpeg" width="320" /><br />
+        <b>Node A — Sensing / Transmitter</b>
+      </td>
+      <td align="center">
+        <img src="block-diagrams/flowchart node_B.jpeg" width="320" /><br />
+        <b>Node B — Actuation / Receiver</b>
+      </td>
+    </tr>
+  </table>
+</div>
+
+---
 
 ### Data Flow
 
@@ -253,11 +277,11 @@ HAL_Delay(1000);  // Transmit every 1 second
 **CAN Message Filter:**
 ```c
 CAN_FilterTypeDef FilterConfig;
-FilterConfig.FilterActivation    = CAN_FILTER_ENABLE;
-FilterConfig.FilterScale         = CAN_FILTERSCALE_32BIT;
-FilterConfig.FilterMode          = CAN_FILTERMODE_IDMASK;
-FilterConfig.FilterMaskIdHigh    = 0xFF00;
-FilterConfig.FilterIdHigh        = 0x1500;
+FilterConfig.FilterActivation     = CAN_FILTER_ENABLE;
+FilterConfig.FilterScale          = CAN_FILTERSCALE_32BIT;
+FilterConfig.FilterMode           = CAN_FILTERMODE_IDMASK;
+FilterConfig.FilterMaskIdHigh     = 0xFF00;
+FilterConfig.FilterIdHigh         = 0x1500;
 FilterConfig.FilterFIFOAssignment = CAN_RX_FIFO0;
 HAL_CAN_ConfigFilter(&hcan1, &FilterConfig);
 ```
@@ -283,13 +307,11 @@ if (is_data_received == 1) {
     uint16_t distance    = (uint16_t)RxData[0] << 8 | RxData[1];
     uint16_t temperature = (uint16_t)RxData[2] << 8 | RxData[3];
 
-    // Display on LCD
     sprintf(str, "Dist: %d cm", distance);
     LcdPuts(LCD_LINE1, str);
     sprintf(str, "Temp: %d C", temperature);
     LcdPuts(LCD_LINE2, str);
 
-    // Alert if obstacle is too close
     if (distance < 20)
         HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_SET);
     else
